@@ -26,3 +26,6 @@ application-local.properties
 # IDE
 .vscode/
 *.swp
+
+# Tooling local (config de agentes/asistente, no forma parte del entregable)
+.claude/
