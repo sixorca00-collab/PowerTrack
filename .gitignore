@@ -1,0 +1,28 @@
+# Android / Kotlin
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# Java / Spring Boot
+target/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Env / secrets
+.env
+*.env.local
+application-local.yml
+application-local.properties
+
+# IDE
+.vscode/
+*.swp
