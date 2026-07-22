@@ -4,18 +4,17 @@
 /local.properties
 /.idea/
 .DS_Store
-/build/
+build/
 /captures/
 .externalNativeBuild/
 .cxx/
 *.apk
 *.aab
 
-# Java / Spring Boot
-target/
+# Java / Spring Boot (Gradle)
 *.class
 *.jar
-!gradle/wrapper/gradle-wrapper.jar
+!**/gradle/wrapper/gradle-wrapper.jar
 
 # Env / secrets
 .env

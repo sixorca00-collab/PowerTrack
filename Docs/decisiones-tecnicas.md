@@ -17,3 +17,17 @@ Registro cronológico de decisiones no obvias y desvíos respecto al PRD origina
 - `.claude/agents/backend-java-senior.md` — principios de arquitectura del agente.
 
 **Nota:** El módulo Android (MVVM + Clean Architecture ligera) no cambia — esta decisión es exclusiva del backend.
+
+---
+
+### 2026-07-21 — Backend: Gradle (Kotlin DSL) en vez de Maven
+
+**Contexto:** El scaffold inicial del backend se armó con Maven (`pom.xml`). El usuario pidió cambiarlo a Gradle antes de seguir avanzando.
+
+**Decisión:** Se reemplaza Maven por Gradle 8.10 con Kotlin DSL (`build.gradle.kts`), wrapper commiteado (`gradlew`, `gradlew.bat`, `gradle/wrapper/`) para no depender de una instalación local de Gradle.
+
+**Motivo:** Consistencia de tooling con el lado Android del proyecto (Gradle es obligatorio ahí) y mejor compatibilidad/tooling con Kotlin a futuro si se comparte código o convenciones entre backend y mobile.
+
+**Verificación:** se migraron las mismas dependencias 1:1 (Spring Boot BOM vía plugin `io.spring.dependency-management`), se corrieron los 5 tests unitarios (pasan igual que con Maven) y se repitió la prueba manual end-to-end (Postgres real vía docker-compose + `./gradlew bootRun` + registro/login) con resultado idéntico.
+
+**Detalle no obvio:** el patrón `!gradle/wrapper/gradle-wrapper.jar` en `.gitignore` no alcanza subcarpetas (solo desbloquea esa ruta en la raíz del repo); se corrigió a `!**/gradle/wrapper/gradle-wrapper.jar` para que el jar del wrapper de `backend/` quede versionado y no se pierda al clonar.
