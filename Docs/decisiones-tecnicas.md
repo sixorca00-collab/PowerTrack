@@ -111,3 +111,14 @@ Registro cronológico de decisiones no obvias y desvíos respecto al PRD origina
 4. **Un `409` en `finish` durante un reintento de sync es una señal de idempotencia, no un error.** No se cambió `WorkoutSessionAlreadyFinishedException` — se documenta el contrato para que el cliente lo consuma así: la única forma de recibir ese `409` es que la sesión ya se había completado antes, así que un reintento que lo recibe debe tratarlo como éxito, no reintentar indefinidamente ni mostrar error al usuario.
 
 **Fuera de alcance, señalado explícitamente:** endpoint de sync por lote (cada endpoint es idempotente individualmente, el cliente decide cuántas veces llamarlo); el caso "rutina borrada offline con sesiones en cola que la referencian" (el cliente no debería sincronizar sesiones de una rutina que también borró offline); todo el lado mobile (no existe código Android todavía).
+
+---
+
+### 2026-07-23 — Mobile: dos pendientes detectados al probar el scaffold en dispositivo físico (reportado, no corregido)
+
+**Contexto:** primera instalación del scaffold de `mobile/` (commit `9643614`) en un dispositivo físico (Redmi, vía USB + `adb reverse`), no en emulador. Dos problemas quedaron señalados durante esa prueba, sin corregir todavía:
+
+1. **Ícono launcher genérico.** La app instala con los `ic_launcher_foreground`/`ic_launcher_background` por defecto en vez del logo jaguar de la marca. Existe `mobile/app/src/main/res/drawable-nodpi/logo_powertrack.png` en el proyecto, pero no está conectado como ícono de la app.
+2. **Pantallas no responsive.** Las pantallas Compose actuales no se adaptan a tamaños de pantalla más grandes o más chicos que el probado (sin manejo de `WindowSizeClass` ni breakpoints equivalentes).
+
+**No se corrige en este cambio** — queda pendiente para una siguiente pasada del lado mobile (candidato: `mobile-designer`).
