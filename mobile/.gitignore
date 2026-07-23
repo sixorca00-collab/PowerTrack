@@ -1,0 +1,15 @@
+# Generado por Android Studio / Gradle en cada máquina, nunca se commitea.
+local.properties
+
+# Build outputs
+*.iml
+.gradle/
+build/
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# IDE
+.idea/

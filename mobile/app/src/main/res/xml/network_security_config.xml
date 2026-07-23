@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Config base para build "release": NO permite cleartext en ningún dominio.
+  El override que habilita cleartext solo para el host de desarrollo
+  (10.0.2.2, el backend local visto desde el emulador) vive exclusivamente
+  en src/debug/res/xml/network_security_config.xml y nunca se empaqueta en release.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

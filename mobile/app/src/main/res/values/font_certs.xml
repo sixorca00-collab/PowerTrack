@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Certificados requeridos por el Provider de Google para Downloadable Fonts
+  (androidx.compose.ui:ui-text-google-fonts). Son los hashes públicos y
+  documentados del paquete "com.google.android.gms" tal como los publica
+  Google (no son secretos ni específicos de esta app). Se referencian desde
+  ui/theme/Type.kt vía GoogleFont.Provider.
+-->
+<resources>
+    <array name="com_google_android_gms_fonts_certs">
+        <item>@array/com_google_android_gms_fonts_certs_dev</item>
+        <item>@array/com_google_android_gms_fonts_certs_prod</item>
+    </array>
+    <string-array name="com_google_android_gms_fonts_certs_dev">
+        <item>
+            MIIEqDCCA5CgAwIBAgIJANWFuGx90071MA0GCSqGSIb3DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEQMA4GA1UEChMHQW5kcm9pZDEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTAeFw0wODA0MTUyMzM2NTZaFw0zNTA5MDEyMzM2NTZaMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEQMA4GA1UEChMHQW5kcm9pZDEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEBANbOLggKv+IxTdgw3M2f4mSp06+FQzC4LfCzcpevtCB4tsE\
+            xxVCwWx1nyEXo3E8fkJyN9dtF6XQ+RhCE9nn8kQV7QhX5rt5tCVJl9RE6/ozp9EA0aHUUD5gpwc5tR/AaSU5NPRt1M0/eucQdWEqFxTUp\
+            RTUv0m9SR2ecJTQwmY7MtxsD0/ehmb/dq5JZitl6yFHm5cJcqlG4Dnxd57idNiEqQBhTZR9J1B5W5cbg9dJ5FeUepfoWjOhqADeqbHfB\
+            KGaAeeIHkbFdMxvV5nkddQKQVFEXm/rW77xQnkiZkE6iZjkRJj5Y3v87+lu80EA0eiRJ9DTvsRnMkBnLbLBAKN0=
+        </item>
+    </string-array>
+    <string-array name="com_google_android_gms_fonts_certs_prod">
+        <item>
+            MIIEQzCCAyugAwIBAgIJAMLgh0ZkSjCNMA0GCSqGSIb3DQEBBAUAMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDAeFw0wODA4MjEyMzEzMzRaFw0zNjAxMDcyMzEzMzRaMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEBAKtWLclcTL3EewfEuvsqIN0YMlm0k2rDsIPYPkVZ0uf/QaOm1t6TjaTMcXHu/OQzhqI6f5DwCHOw3XA9RN0R/ZjOOWJnzWXCEHZneQyIcQ8Ba7Bl6xw==
+        </item>
+    </string-array>
+</resources>

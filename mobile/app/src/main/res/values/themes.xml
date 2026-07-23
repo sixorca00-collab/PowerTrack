@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema de plataforma (splash previo a Compose / ventana de la Activity).
+         El theming real de la UI vive en ui/theme/Theme.kt (Compose). Este
+         estilo solo define la ventana base en negro puro, acorde al design
+         system ("Aggressive Modernism", fondo OLED #000000). -->
+    <style name="Theme.PowerTrack" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowBackground">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
