@@ -23,6 +23,8 @@ AuthController (adaptador in)
 
 **Requests protegidos:** `JwtAuthenticationFilter` (adaptador in, infraestructura pura — no pasa por ningún puerto de aplicación) valida el `Bearer` token en cada request no-auth y puebla el `SecurityContext` con el `userId` como principal.
 
+**Refresh (2026-07-23):** `POST /auth/refresh` — `RefreshAccessTokenService` valida el refresh token vía `TokenProviderPort.validateRefreshTokenAndGetUserId` (implementado en `JwtTokenAdapter` reutilizando `parseClaims` + el claim `type`), busca el usuario y emite un `accessToken` nuevo. Sin rotación del refresh token (no hay revocación en el MVP). Habilita el diseño offline-first: el access token dura 15 min pero el refresh (90 días) sostiene sesiones largas sin señal. Detalle y motivo completo en `Docs/decisiones-tecnicas.md`.
+
 **Estado:** implementado y verificado end-to-end (compilación, tests unitarios de `RegisterUserService`/`AuthenticateUserService`, y prueba manual contra Postgres real vía docker-compose: registro, duplicado, login OK, login con password incorrecta, validación de input, endpoint protegido sin token).
 
 **Próximo módulo a construir:** ver estado global al final de este documento.
@@ -39,10 +41,15 @@ AuthController (adaptador in)
 
 `RoutineExercise` vs `Exercise`: `Exercise` es el catálogo global (nombre, músculo, categoría — puede ser predefinido o personalizado vía `createdByUserId` nullable). `RoutineExercise` es la personalización real del usuario dentro de una rutina: apunta a un `exerciseId` del catálogo pero define sus propios `targetSets`/`targetRepMin`/`targetRepMax`/`restSeconds`. Esta separación es la base de la decisión documentada en `Docs/decisiones-tecnicas.md` sobre qué ancla usa el registro de progreso.
 
+**Idempotencia y offline (2026-07-23):** `routineId` lo genera el **cliente**, no el servidor — permite crear una rutina offline y sincronizarla después sin duplicar si el request se reintenta. Detalle y motivo en `Docs/decisiones-tecnicas.md`.
+
 **Flujo de datos (creación):**
 ```
 RoutineController.create
   -> CreateRoutineUseCase / CreateRoutineService
+       -> RoutineRepositoryPort.findByIdAndUserId(routineId, userId)
+            -> si ya existe: devuelve la rutina existente tal cual (idempotencia de reintento)
+            -> si existe para otro usuario: 400 (colisión de ID)
        -> ExerciseRepositoryPort.findAllByIds  (valida que TODOS los exerciseId referenciados existan)
             -> si falta alguno: ExerciseNotFoundException (404)
        -> Routine.create + RoutineDay.create + RoutineExercise.create  (dominio puro, valida invariantes: rangos de reps, targetSets >= 1, etc.)
@@ -64,9 +71,14 @@ RoutineController.create
 
 **Conexión con Rutinas:** el registro no apunta a `Exercise` sino a `routineExerciseId` (el `RoutineExercise` de la rutina activa), tanto al iniciar sesión (`routineDayId`) como al loguear cada ejercicio (`routineExerciseId` dentro de `finish`). Así, el motor de sugerencias siempre compara contra los targets que el propio usuario configuró, no contra un target genérico del catálogo.
 
+**Idempotencia y offline (2026-07-23):** `sessionId` (en `start`) y `startTime`/`endTime` (en `start`/`finish`) los provee el **cliente**, no el servidor — ver `Docs/decisiones-tecnicas.md`. Esto permite que "iniciar" y "finalizar" una sesión entrenada offline se sincronicen después preservando el momento real en que ocurrieron, y que reintentar `start` tras un corte de red sea un no-op en vez de crear una sesión duplicada. Un `409` en un reintento de `finish` se interpreta del lado del cliente como "ya se sincronizó con éxito", no como error.
+
 **Flujo de datos (start → finish):**
 ```
-POST /session/start { routineDayId }
+POST /session/start { sessionId, routineDayId, startTime }
+  -> WorkoutSessionRepositoryPort.findByIdAndUserId(sessionId, userId)
+       -> si ya existe: devuelve la sesión existente tal cual (idempotencia de reintento)
+       -> si existe para otro usuario: 400 (colisión de ID)
   -> RoutineRepositoryPort.existsRoutineDayOwnedByUser  (reusa el ownership check de Rutinas, no lo duplica)
        -> si no pertenece: RoutineDayNotFoundException (404)
   -> WorkoutSession.start (status = IN_PROGRESS)
@@ -74,7 +86,7 @@ POST /session/start { routineDayId }
 
 [cliente entrena, opcionalmente consulta GET /previous-log?routineExerciseId=... para prellenar pesos/reps de la sesión anterior]
 
-POST /session/{id}/finish { overallFeeling, exerciseLogs: [...] }
+POST /session/{id}/finish { overallFeeling, exerciseLogs: [...], endTime }
   -> WorkoutSessionRepositoryPort.findByIdAndUserId  -> 404 si no es del usuario; 409 si ya estaba COMPLETED
   -> por cada exerciseLog:
        -> RoutineRepositoryPort.findRoutineExerciseTargets  -> 404 si el routineExerciseId no es del usuario

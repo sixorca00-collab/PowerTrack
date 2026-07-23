@@ -93,3 +93,21 @@ Registro cronológico de decisiones no obvias y desvíos respecto al PRD origina
 **Motivo:** el objetivo del producto es sobrecarga progresiva. Que un usuario con esfuerzo bajo (RPE 1-6) y reps ya dentro de rango reciba "Mantener" por defecto, en vez de "Aumentar Repeticiones", contradice ese objetivo — tiene margen real para progresar. El gap original (minoría bajo `target_min`) sigue sin regla propia y sigue siendo una decisión de producto pendiente, no afectada por este cambio.
 
 **Verificación:** `ProgressionRuleEngineTest` actualizado (el caso RPE=6 que antes afirmaba "no califica" ahora afirma lo contrario, más un caso límite en RPE=1); suite completa del backend sigue en verde.
+
+---
+
+### 2026-07-23 — Backend: base offline-first (refresh token, IDs de cliente, timestamps de cliente)
+
+**Contexto:** decisión de producto de priorizar que Rutinas y Registro de Entrenamiento funcionen sin conexión (crear/ejecutar/eliminar; solo *editar* una rutina requiere red), antes de encarar Cardio. El diseño completo se acordó en varias sesiones: login una sola vez (el token no debe bloquear el uso offline), timestamps tomados tal cual del dispositivo (sin policía de "moralidad" del usuario), IDs generados por el cliente para que sincronizar después sea idempotente, y un tope de reintentos manejado enteramente del lado del cliente (fuera del alcance de este cambio).
+
+**Decisiones:**
+
+1. **`POST /api/v1/auth/refresh` implementado.** El PRD §13.1 ya asumía este endpoint (vía `Authenticator` de Retrofit) pero nunca se había construido — sin él, el access token de 15 min forzaba re-login constante. Valida el refresh token vía un nuevo método en `TokenProviderPort` (`validateRefreshTokenAndGetUserId`), sin cruzar el límite hexagonal hacia `JwtTokenAdapter` directamente desde la capa de aplicación. **Sin rotación de refresh token**: se devuelve el mismo que se recibió, porque no existe infraestructura de revocación en el MVP y agregarla ahora sería sobre-construir. `refresh-token-expiration-days` sube de 30 a 90 como colchón para usuarios sin señal por semanas.
+
+2. **IDs generados por el cliente (no por el servidor) para `Routine` y `WorkoutSession`.** `CreateRoutineCommand.routineId` y `StartSessionCommand.sessionId` ahora los provee quien llama. Esto es lo que hace posible que un reintento de sincronización offline sea idempotente: `CreateRoutineService` y `StartWorkoutSessionService` primero buscan por `id + userId` — si ya existe, devuelven el resultado ya persistido sin volver a insertar; si el ID ya existe pero pertenece a **otro** usuario (colisión real o bug de cliente, prácticamente imposible con UUIDv4 pero barato de chequear), se rechaza con `400` en vez de sobreescribir datos ajenos.
+
+3. **Timestamps reportados por el cliente, sin validación de sanidad server-side.** `StartSessionCommand.startTime` y `FinishSessionCommand.endTime` reemplazan el `Instant.now()` que antes fijaba el servidor al procesar el request. Motivo: con sync offline, "ahora" en el servidor puede ser días después de que el entrenamiento ocurrió realmente — si el servidor siguiera estampando su propia hora, se rompería el orden cronológico del que depende la Regla 5 (Deload) y el autocompletado. **Decisión explícita del usuario**: no se valida que el timestamp sea plausible (ej. no está en el futuro); un reloj de dispositivo mal configurado es un riesgo aceptado, no un caso a defender en este alcance.
+
+4. **Un `409` en `finish` durante un reintento de sync es una señal de idempotencia, no un error.** No se cambió `WorkoutSessionAlreadyFinishedException` — se documenta el contrato para que el cliente lo consuma así: la única forma de recibir ese `409` es que la sesión ya se había completado antes, así que un reintento que lo recibe debe tratarlo como éxito, no reintentar indefinidamente ni mostrar error al usuario.
+
+**Fuera de alcance, señalado explícitamente:** endpoint de sync por lote (cada endpoint es idempotente individualmente, el cliente decide cuántas veces llamarlo); el caso "rutina borrada offline con sesiones en cola que la referencian" (el cliente no debería sincronizar sesiones de una rutina que también borró offline); todo el lado mobile (no existe código Android todavía).
