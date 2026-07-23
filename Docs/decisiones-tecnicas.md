@@ -81,3 +81,15 @@ Registro cronológico de decisiones no obvias y desvíos respecto al PRD origina
 **Estado de la implementación:** `Recommendation` (enum de dominio) y `ProgressionRuleEngine` implementan exactamente las 5 reglas de §14.1 (`INCREASE_WEIGHT`, `INCREASE_REPS`, `MAINTAIN`, `DECREASE_WEIGHT`, `DELOAD`). "Recomendar descanso adicional" de RF-06 no tiene condición definida en ningún lado del PRD y no fue implementado.
 
 **No se edita el PRD por esta vía** (fuera del alcance de este agente); se señala aquí para que producto decida si RF-06 debe recortarse a 5 salidas (alinearlo con §14.1) o si falta definir una 6ª regla con su condición exacta.
+
+---
+
+### 2026-07-23 — Backend: Regla 2 (`ProgressionRuleEngine`) extendida de RPE {7,8} a RPE ≤8
+
+**Contexto:** revisión pre-testers detectó un segundo gap no documentado, distinto del ya conocido (minoría de series bajo `target_min`): con reps ya dentro de `[target_min, target_max)` pero RPE bajo (1-6), ninguna de las 5 reglas del PRD §14.1 aplicaba (Regla 1 exige llegar a `target_max`; Regla 2 exigía RPE exactamente en {7,8}; Regla 3 exige RPE=9 o sensación Regular). El motor devolvía `MAINTAIN` por el mismo fallback por defecto, pero a diferencia del gap original este caso no es raro: cualquier serie con esfuerzo cómodo (RPE 1-6) y reps intermedias lo dispara.
+
+**Decisión:** la condición de RPE de la Regla 2 pasa de `RPE == 7 || RPE == 8` a `RPE <= 8` (mismo techo que ya usa la Regla 1), sin tocar las Reglas 1, 3, 4 o 5. Verificado que no genera colisiones: la Regla 3 (Mantener) se evalúa antes que la Regla 2 en el orden 5→4→3→2→1, así que los casos con sensación Regular o RPE=9 se siguen resolviendo ahí sin llegar nunca a la Regla 2 ampliada.
+
+**Motivo:** el objetivo del producto es sobrecarga progresiva. Que un usuario con esfuerzo bajo (RPE 1-6) y reps ya dentro de rango reciba "Mantener" por defecto, en vez de "Aumentar Repeticiones", contradice ese objetivo — tiene margen real para progresar. El gap original (minoría bajo `target_min`) sigue sin regla propia y sigue siendo una decisión de producto pendiente, no afectada por este cambio.
+
+**Verificación:** `ProgressionRuleEngineTest` actualizado (el caso RPE=6 que antes afirmaba "no califica" ahora afirma lo contrario, más un caso límite en RPE=1); suite completa del backend sigue en verde.
